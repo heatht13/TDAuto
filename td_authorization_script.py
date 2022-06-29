@@ -4,12 +4,13 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 import requests
 from urllib import parse
+import credentials
 
-userID = 'heatht23'
-userPass = 'FinTech$13'
+userID = credentials.user_id
+userPass = credentials.user_password
 body = r"https://auth.tdameritrade.com/auth?"
 #lvl1 app's consumer key
-consumer_key = "EE3ASWQAMLRJLJGYOPUVQO6W6IAECTCE"
+consumer_key = credentials.consumer_key
 suffix = "@AMER.OAUTHAP"
 payload = {
     "response_type" : "code",
@@ -43,22 +44,22 @@ security.click()
 question = driver.find_element(By.XPATH, "/html/body/form[1]/main/div[@class='row description']/p[2]")
 if('Question: In what city was your high school? (Enter full name of city only.)' == question.text):
     answer = driver.find_element(By.NAME, 'su_secretquestion')
-    answer.send_keys('Troy')
+    answer.send_keys(credentials.answer1)
     button = driver.find_element(By.NAME, 'authorize')
     button.submit()
 elif('Question: What is your best friend\'s first name?' == question.text):
     answer = driver.find_element(By.NAME, 'su_secretquestion')
-    answer.send_keys('Nick')
+    answer.send_keys(credentials.answer2)
     button = driver.find_element(By.NAME, 'authorize')
     button.submit()
 elif('Question: What was the name of your first pet?' == question.text):
     answer = driver.find_element(By.NAME, 'su_secretquestion')
-    answer.send_keys('Roxy')
+    answer.send_keys(credentials.answer3)
     button = driver.find_element(By.NAME, 'authorize')
     button.submit()
 elif('Question: What was the last name of your favorite teacher in your final year of high school?' == question.text):
     answer = driver.find_element(By.NAME, 'su_secretquestion')
-    answer.send_keys('Stoner')
+    answer.send_keys(credentials.answer4)
     button = driver.find_element(By.NAME, 'authorize')
     button.submit()
 else:
