@@ -19,17 +19,17 @@ class TD_API:
         if(user_id):
             self.user_id = user_id
         else:
-            self.user_id = '490932089'
+            #self.user_id = ''
         if(consumer_key):
             self.consumer_key = consumer_key
         else:
-            self.consumer_key = 'EE3ASWQAMLRJLJGYOPUVQO6W6IAECTCE'
+            #self.consumer_key = ''
         if(refresh_token):
             self.refresh_token = refresh_token
             self.refresh_token = datetime.strptime(refresh_token_exp, "%y-%m-%d H:M:S")
         else:
-            self.refresh_token = 'hgLOqmQa3rQr2l375NsZWzd4BHLWxckkmpjwiTrB+99PrVd34YFdUG5foGVvkrk3SE4aN+AVUqVYXztRUKPwVpBfnUREGbK83UD626M4uDo8DXdg3KOFKf2mhcIAqIScxVGE6DxhjlfSKUUGQN6VgJcxlzh2fcVkqiiPse00YvRBnDHIvfrtYlPBS+4YrIfD/m3vXGR0uQB3AfbN1pcF9gmg1me+wGmWxysdItg/1hIHu8I40GQGvdOm14ZJPicY1JLDT23aWbsnsFZ5tIPPtVgnx4E65QKsSMjprUhFO5Dguoi4/XHHifPY6Z+tyj+h+V2g/WNwOp+bnygyO5JHfKOpzawABXnci0UtmK4z8MtxtcnS3zUBkpmVQISSWqV6xzrAwdZ9oAUjaaTOe8w7iTsoajU1m7nHkrpJ45kkn3n+vICJFvJmC70/+ta100MQuG4LYrgoVi/JHHvlLx8AVD/FROoZ9lcQRPvLsCq+FGdciJzhHOCO6Lnq4s41CoTafeLlpE3bMgkRABuJnIPwnEDdIgnP6nh8Z9qBR+zYQIxmqRB52wPOQ09UvvGNO5w+pHsDuQjPQIk2j9Imgy+fGxX3xwKJpLVQNODhR2kW2m0nuFHeIiza92j0Y/HsX9cyCFIWJGrNezNSsqPNlwzH3G/eMQYcxzNQHC+sk/qoSXQviuCYm7ETWe2QEWFxdfCtQBgmV7d+nn5sOObCrH3YJvJqSe3OjN0RZD5em6j2y1goxp1dGccqmA6ARPLqs6M9SRuIqEb+hCCEbPJoXyGjBWifKn+grV/9QlDAdU709kH4nxEi7FaylYM6JZ7ZHsLWthxhylOlhEavtFFdExXv2A7ExyUP77jeVTgsJAC9Chllw4XJh37mcuz8h3lrOsquk4RdKY0Q0N4=212FD3x19z9sWBHDJACbC00B75E'
-            self.refresh_token_expiration = datetime.utcfromtimestamp(1664051000)
+            #self.refresh_token = ''
+            #self.refresh_token_expiration = datetime.utcfromtimestamp(1664051000)
         self.access_token = ''
         self.access_token_expiration = datetime.utcfromtimestamp(0)
         self.token_type = ''
