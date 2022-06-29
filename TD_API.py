@@ -30,7 +30,7 @@ class TD_API:
             self.refresh_token = datetime.strptime(refresh_token_exp, "%y-%m-%d H:M:S")
         else:
             self.refresh_token = credentials.refresh_token
-            self.refresh_token_expiration = datetime.utcfromtimestamp(1664051000)
+            self.refresh_token_expiration = datetime.utcfromtimestamp(credentials.refresh_token_exp)
         self.access_token = ''
         self.access_token_expiration = datetime.utcfromtimestamp(0)
         self.token_type = ''
