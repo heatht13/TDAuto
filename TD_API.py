@@ -16,20 +16,21 @@ class TD_API:
                     - refresh_token_exp: Date in 'YYYY-MM-DD HH:MM:SS' format indicating refresh token's expiration"""
         
         from datetime import datetime
+        import credentials
         if(user_id):
             self.user_id = user_id
         else:
-            #self.user_id = ''
+            self.user_id = credentials.user_id
         if(consumer_key):
             self.consumer_key = consumer_key
         else:
-            #self.consumer_key = ''
+            self.consumer_key = credentials.consumer_key
         if(refresh_token):
             self.refresh_token = refresh_token
             self.refresh_token = datetime.strptime(refresh_token_exp, "%y-%m-%d H:M:S")
         else:
-            #self.refresh_token = ''
-            #self.refresh_token_expiration = datetime.utcfromtimestamp(1664051000)
+            self.refresh_token = credentials.refresh_token
+            self.refresh_token_expiration = datetime.utcfromtimestamp(1664051000)
         self.access_token = ''
         self.access_token_expiration = datetime.utcfromtimestamp(0)
         self.token_type = ''
