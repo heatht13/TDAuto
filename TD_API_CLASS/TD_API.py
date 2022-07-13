@@ -16,7 +16,7 @@ class TD_API:
                     - refresh_token_exp: Date in 'YYYY-MM-DD HH:MM:SS' format indicating refresh token's expiration"""
         
         from datetime import datetime
-        import credentials
+        import PersonalTesting.credentials as credentials
         if(user_id):
             self.user_id = user_id
         else:
@@ -27,7 +27,7 @@ class TD_API:
             self.consumer_key = credentials.consumer_key
         if(refresh_token):
             self.refresh_token = refresh_token
-            self.refresh_token = datetime.strptime(refresh_token_exp, "%y-%m-%d H:M:S")
+            self.refresh_token = datetime.strptime(refresh_token_exp, "%Y-%m-%d %H:%M:%S")
         else:
             self.refresh_token = credentials.refresh_token
             self.refresh_token_expiration = datetime.utcfromtimestamp(credentials.refresh_token_exp)
@@ -35,16 +35,18 @@ class TD_API:
         self.access_token_expiration = datetime.utcfromtimestamp(0)
         self.token_type = ''
         self.scope = ''
+        self.principals = {}
+        self.accounts = {}
         TD_API.__instance_id += 1
         self.id = TD_API.__instance_id
     
     def __str__(self) :
-        return f"User ID: {self.user_id} Consumer Key: {self.consumer_key} Refresh Exp: {self.refresh_token_expiration}"
+        return f"User ID: {self.user_id} Consumer Key: {self.consumer_key} Refresh Token: {self.refresh_token} Refresh Exp: {self.refresh_token_expiration}"
     
     def print_credentials(self):
         print(self.__str__())
 
-    def generate_from_auth_code(self, auth_code, path='/refresh_token.txt'):
+    def generate_from_auth_code(self, auth_code, path='./refresh_token.py'):
         """Generates both refresh and access tokens using an authorization code (one time, shouldn't be used ever again for lvl1 app)
                 - Arguments: 
                     - auth_code: Authorization Code produced when authenticating for the first time. Use td_authorization script
@@ -64,13 +66,13 @@ class TD_API:
         json = request.json()
         self.access_token = json['access_token']
         self.refresh_token = json['refresh_token']
-        self.access_token_expiration = datetime.replace(datetime.now(),tzinfo=timezone.utc).timestamp() + int(json['expires_in'])
-        self.refresh_token_expiration = datetime.replace(datetime.now(),tzinfo=timezone.utc).timestamp() + int(json['refresh_token_expires_in'])
+        self.access_token_expiration = datetime.utcfromtimestamp(datetime.replace(datetime.now(),tzinfo=timezone.utc).timestamp() + int(json['expires_in']))
+        self.refresh_token_expiration = datetime.utcfromtimestamp(datetime.replace(datetime.now(),tzinfo=timezone.utc).timestamp() + int(json['refresh_token_expires_in']))
         self.token_type = json['token_type']
         self.scope = json['scope']
         file = open(path, 'w')
-        file.write(f"refresh_token:'{self.refresh_token}'")
-        file.write(f"expiration: {self.refresh_token_expiration}")
+        file.write(f"refresh_token = '{self.refresh_token}'\n")
+        file.write(f"expiration = {self.refresh_token_expiration}")
         file.close()
         return self.access_token
 
@@ -94,10 +96,10 @@ class TD_API:
         request = requests.post(resource, headers = headers, data = payload)
         json = request.json()
         self.access_token = json['access_token']
-        self.access_token_expiration = datetime.replace(datetime.now(),tzinfo=timezone.utc).timestamp() + int(json['expires_in'])
+        self.access_token_expiration = datetime.utcfromtimestamp(datetime.replace(datetime.now(),tzinfo=timezone.utc).timestamp() + int(json['expires_in']))
         return self.access_token
 
-    def generate_refresh_token(self, path='/refresh_token.txt', refresh_token = None):
+    def generate_refresh_token(self, path='/refresh_token.py', refresh_token = None):
         """Generates both refresh and access tokens using an old, nonexpired refresh token (used to renew refresh token every 90 days)
             ***HAS NOT BEEN USED YET***
             - Arguments:
@@ -121,12 +123,88 @@ class TD_API:
         json = request.json()
         self.access_token = json['access_token']
         self.refresh_token = json['refresh_token']
-        self.access_token_expiration = datetime.replace(datetime.now(),tzinfo=timezone.utc).timestamp() + int(json['expires_in'])
-        self.refresh_token_expiration = datetime.replace(datetime.now(),tzinfo=timezone.utc).timestamp() + int(json['refresh_token_expires_in'])
+        self.access_token_expiration = datetime.utcfromtimestamp(datetime.replace(datetime.now(),tzinfo=timezone.utc).timestamp() + int(json['expires_in']))
+        self.refresh_token_expiration = datetime.utcfromtimestamp(datetime.replace(datetime.now(),tzinfo=timezone.utc).timestamp() + int(json['refresh_token_expires_in']))
         self.token_type = json['token_type']
         self.scope = json['scope']
         file = open(path, 'w')
-        file.write(f"refresh_token:'{self.refresh_token}'")
-        file.write(f"expiration: {self.refresh_token_expiration}")
+        file.write(f"refresh_token = '{self.refresh_token}'\n")
+        file.write(f"expiration = {self.refresh_token_expiration}")
         file.close()
         return self.access_token
+
+    def get_user_principals(self):
+        import requests
+        from datetime import datetime, timezone
+        resource = 'https://api.tdameritrade.com/v1/userprincipals'
+        header = {'Authorization': f'Bearer {self.access_token}'}
+        payload = {'fields' : "streamerSubscriptionKeys,streamerConnectionInfo"}
+        response = requests.get(resource, headers = header, params = payload)
+        self.principals = response.json()
+        ##NEED TO TEST EXPIRATION HERE
+        return self.principals
+
+    def get_accounts(self):
+        import requests
+        resource = f"https://api.tdameritrade.com/v1/accounts"
+        header = {'Authorization': f'Bearer {self.access_token}'}
+        response = requests.get(resource, headers = header)
+        self.accounts = response.json()
+        ##NEED TO TEST EXPIRATION HERE
+        return self.accounts
+
+    async def socket(self, request):
+        import websockets
+        import json
+
+        uri = 'wss://' + self.users['streamerInfo']['streamerSocketUrl'] + '/ws'
+        websocket = await websockets.connect(uri)
+        try:
+            await websocket.send(json.dumps(request))
+            response = await websocket.recv()
+            print(response)
+        except websockets.exceptions.ConnectionClosed:
+            print("closed")
+    
+    def streamer_login(self, socket):
+        '''streamer function to open streamer connection and start data stream.
+                Arguments: a user_principals object returned from "get_user_principals" API call
+
+            **NOT FUNCTIONAL CURRENTLY - TD STREAMER SERVER NOT RESPONDING, WAITING FOR ASSISTANCE FROM TD DEVS**
+        '''
+        from datetime import datetime
+        from urllib.parse import urlencode
+        import asyncio
+
+        credential = {
+            "userid": self.users['accounts'][0]['accountId'],
+            "token": self.users['streamerInfo']['token'],
+            "company": self.users['accounts'][0]['company'],
+            "segment": self.users['accounts'][0]['segment'],
+            "cddomain": self.users['accounts'][0]['accountCdDomainId'],
+            "usergroup": self.users['streamerInfo']['userGroup'],
+            "accesslevel": self.users['streamerInfo']['accessLevel'],
+            "authorized": "Y",
+            "timestamp": str(datetime.strptime(self.users['streamerInfo']['tokenTimestamp'], "%Y-%m-%dT%H:%M:%S%z").timestamp()*1000),
+            "appid": self.users['streamerInfo']['appId'],
+            "acl": self.users['streamerInfo']['acl']
+        }
+
+        login = {
+            "requests": [
+                {
+                    "service": "ADMIN",
+                    "requestid": "1",
+                    "command": "LOGIN",
+                    "account": self.users['accounts'][0]['accountId'],
+                    "source": self.users['streamerInfo']['appId'],
+                    "parameters": {
+                        "credential": urlencode(credential),
+                        "token": self.users['streamerInfo']['token'],
+                        "version": "1.0"
+                    }
+                }
+            ]
+        }
+
+        asyncio.run(socket(login))

@@ -32,7 +32,7 @@ def streamer_login(principals):
         "accesslevel": principals['streamerInfo']['accessLevel'],
         "authorized": "Y",
         "acl": principals['streamerInfo']['acl'],
-        #"timestamp": tokenTimeStampAsMs, ##NEEDS DONE
+        "timestamp": principals['streamerInfo']['tokenTimestamp']
         "appid": principals['streamerInfo']['appId'],
     }
 

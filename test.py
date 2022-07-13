@@ -1,43 +1,63 @@
-import requests
+from datetime import datetime, timezone
+##import time
+##from TD_API_CLASS.TD_API import TD_API
+from os import access
+import APIs.api_calls as api
+import PersonalTesting.credentials as credentials
+from access import access_token
 from urllib.parse import urlencode
 import websockets
 import asyncio
 import json
+import traceback
 
-def get_user_principals(token):
-    resource = 'https://api.tdameritrade.com/v1/userprincipals'
-    header = {'Authorization': f'Bearer {token}'}
-    payload = {'fields' : "streamerSubscriptionKeys,streamerConnectionInfo"}
-    response = requests.get(resource, headers = header, params = payload)
-    return response.json()
+##token = generate_refresh_token(refresh_token, consumer_key, path)
+##print()
+##print(datetime.now())
+##print(datetime.utcfromtimestamp(datetime.now()))
+##print(datetime.fromtimestamp(time.time()))
 
-def get_accounts(token):
-    resource = f"https://api.tdameritrade.com/v1/accounts"
-    header = {'Authorization': f'Bearer {token}'}
-    return requests.get(resource, headers = header)
+#################################
+##WORKS!!
+##client = TD_API()
+##client.print_credentials()
+##help(TD_API.generate_access_token_from_refresh)
+##client.generate_access_token_from_refresh()
+##print(client.get_user_principals())
+#####################
+##api.generate_access_token_from_refresh(credentials.refresh_token, credentials.consumer_key)
 
-def generate_access_token_from_refresh(token, consumer):
-        """Generates an access token using a refresh token (used most often)
-            Arguments:
-                refresh_token: A valid, non-expired refresh token. If not possessed, please generate one using generate_from_auth_code()"""
-        import requests
-        from datetime import datetime, timezone
-        resource = r"https://api.tdameritrade.com/v1/oauth2/token"
-        headers = {'Content-Type':'application/x-www-form-urlencoded'}
-        payload = {
-            'grant_type':'refresh_token',
-            'refresh_token': token,
-            'client_id': consumer,
-        }
-        request = requests.post(resource, headers = headers, data = payload)
-        json = request.json()
-        file = open('./access.py', 'w')
-        file.write(f"access_token = '{json['access_token']}'\n")
-        file.write(f"expiration = '{datetime.utcfromtimestamp(datetime.replace(datetime.now(),tzinfo=timezone.utc).timestamp() + int(json['expires_in']))}'")
-        file.close()
-        return json['access_token']
 
-async def socket(users, login):
+# logout = {
+#     "requests": [
+#         {
+#             "service": "ADMIN",
+#             "command": "LOGOUT",
+#             "requestid": "2",
+#             "account": users['accounts'][0]['accountId'],
+#             "source": users['streamerInfo']['appId'],
+#             "parameters": {}
+#         }
+#     ]
+# }
+
+# actives = {
+#     "requests": [
+#         {
+#             "service": "ACTIVES_NASDAQ", 
+#             "requestid": "3", 
+#             "command": "SUBS", 
+#             "account": users['accounts'][0]['accountId'], 
+#             "source": users['streamerInfo']['appId'], 
+#             "parameters": {
+#                 "keys": "NASDAQ-60", 
+#                 "fields": "0,1"
+#             }
+#         }
+#     ]
+
+# }
+async def socket(login, actives):
     uri = 'wss://' + users['streamerInfo']['streamerSocketUrl'] + '/ws'
     websocket = await websockets.connect(uri)
     try:
@@ -47,17 +67,11 @@ async def socket(users, login):
     except websockets.exceptions.ConnectionClosed:
         print("closed")
     return response
-    
-def streamer_login(users, socket):
-    '''streamer function to open streamer connection and start data stream.
-            Arguments: a user_principals object returned from "get_user_principals" API call
-    '''
-    from datetime import datetime
-    from urllib.parse import urlencode
-    import websockets
-    import asyncio
-    import json
+        
 
+if __name__ == '__main__':
+    ##api.generate_access_token_from_refresh(credentials.refresh_token, credentials.consumer_key)
+    users = api.get_user_principals(access_token)
     credential = {
         "userid": users['accounts'][0]['accountId'],
         "token": users['streamerInfo']['token'],
@@ -104,6 +118,4 @@ def streamer_login(users, socket):
             }
         ]
     }
-
-    asyncio.run(socket(users, login))
-    return
+    asyncio.run(socket(login, actives))
